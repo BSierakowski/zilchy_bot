@@ -15,3 +15,12 @@ It shows you how to:
 - Bot appearance is controlled by `src/appearance.cfg`
 
 See https://github.com/RLBot/RLBotPythonExample/wiki for documentation and tutorials.
+
+## Ideas:
+
+- Faster boost stealing
+- Speed flips
+- Optimal kickoffs
+-- kickoff priority
+-- https://github.com/RLBot/RLBot/wiki/Useful-Game-Values
+- Wavedashs
