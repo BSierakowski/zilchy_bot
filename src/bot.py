@@ -15,7 +15,6 @@ class MyBot(BaseAgent):
         super().__init__(name, team, index)
         self.active_sequence: Sequence = None
         self.boost_pad_tracker = BoostPadTracker()
-        self.boost_count = 0
 
     def initialize_agent(self):
         # Set up information about the boost pads now that the game is active and the info is available
@@ -92,15 +91,6 @@ class MyBot(BaseAgent):
         boost_index = boost_distances.index(min(boost_distances))
 
         boost_location = active_boosts[boost_index].location
-
-        close_enough = [boost_location[0] - 100,
-                        boost_location[0] + 100,
-                        boost_location[1] - 100,
-                        boost_location[1] + 100]
-
-        if close_enough[0] <= car_location[0] <= close_enough[1]:
-            if close_enough[2] <= car_location[1] <= close_enough[3]:
-                self.boost_count += 1
 
         controls.steer = steer_toward_target(my_car, boost_location)
         controls.throttle = 1.0
