@@ -65,23 +65,33 @@ class MyBot(BaseAgent):
 
         controls = SimpleControllerState()
 
-        self.get_all_boosts(controls, car_location, my_car)
+        self.boost_steal(controls, car_location, my_car)
 
         return controls
 
-    def get_all_boosts(self, controls, car_location, my_car):
-        if self.boost_count >= 6:
-            self.boost_count = 0
+    def available_big_boost(full_boosts):
+        if (full_boosts.is_active == True):
+            return True
+        else:
+            return False
 
-        boost_location_blue_left = Vec3(3072.0, -4096.0, 73.0)
-        boost_location_mid_left = Vec3(3584.0, 0.0, 73.0)
-        boost_location_orange_right = Vec3(3072.0,  4096.0, 73.0)
-        boost_location_orange_left = Vec3(-3072.0,  4096.0, 73.0)
-        boost_location_mid_right = Vec3(-3584.0, 0.0, 73.0)
-        boost_location_blue_right = Vec3(-3072.0,  -4096.0, 73.0)
+    def boost_steal(self, controls, car_location, my_car):
+        active_boosts = [boost for boost in self.boost_pad_tracker.get_full_boosts() if boost.is_active == True]
+        car_x = int(car_location.x)
+        car_y = int(car_location.y)
 
-        boost_locations = [boost_location_blue_left, boost_location_mid_left, boost_location_orange_right, boost_location_orange_left, boost_location_mid_right, boost_location_blue_right]
-        boost_location = boost_locations[self.boost_count]
+        boost_distances = []
+
+        for boost in active_boosts:
+            boost_x = int(boost.location.x)
+            boost_y = int(boost.location.y)
+
+            distance_from_boost = abs(boost_x - car_x) + abs(boost_y - car_y)
+            boost_distances.append(distance_from_boost)
+
+        boost_index = boost_distances.index(min(boost_distances))
+
+        boost_location = active_boosts[boost_index].location
 
         close_enough = [boost_location[0] - 100,
                         boost_location[0] + 100,
