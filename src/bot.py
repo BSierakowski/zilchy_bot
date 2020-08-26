@@ -87,12 +87,6 @@ class MyBot(BaseAgent):
 
         return controls
 
-    def available_big_boost(full_boosts):
-        if (full_boosts.is_active == True):
-            return True
-        else:
-            return False
-
     def do_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
         controls.steer = steer_toward_target(my_car, ball_location)
