@@ -87,7 +87,44 @@ class MyBot(BaseAgent):
 
         return controls
 
+    def get_kickoff_position(self, car_location):
+        if car_location == Vec3(2048, -2560) or car_location == Vec3(-2048, 2560):
+            return 1
+        elif car_location == Vec3(-2048, -2560) or car_location == Vec3(2048, 2560):
+            return 2
+        elif car_location == Vec3(256, -3840) or car_location == Vec3(-256, 3840):
+            return 3
+        elif car_location == Vec3(-256, -3840) or car_location == Vec3(256, 3840):
+            return 4
+        else:
+            return 5
+
     def do_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
+        self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
+        controls.steer = steer_toward_target(my_car, ball_location)
+        controls.throttle = 1.0
+        controls.boost = True
+
+        kickoff_position = self.get_kickoff_position(car_location)
+
+        if kickoff_position == 1 or kickoff_position == 2:
+            self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
+        else:
+            self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+
+        # # Do a front flip. We will be committed to this for a few seconds and the bot will ignore other
+        # # logic during that time because we are setting the active_sequence.
+        # self.active_sequence = Sequence([
+        #     ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
+        #     ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
+        #     ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=-1)),
+        #     ControlStep(duration=0.8, controls=SimpleControllerState()),
+        # ])
+        #
+        # # Return the controls associated with the beginning of the sequence so we can start right away.
+        # return self.active_sequence.tick(packet)
+
+    def front_flip_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
         controls.steer = steer_toward_target(my_car, ball_location)
         controls.throttle = 1.0
@@ -101,7 +138,6 @@ class MyBot(BaseAgent):
 
         if distance_from_ball <= 1000:
             self.begin_front_flip(packet)
-
 
     def boost_steal(self, controls, car_location, my_car, ball_location):
         active_boosts = [boost for boost in self.boost_pad_tracker.get_full_boosts() if boost.is_active == True]
