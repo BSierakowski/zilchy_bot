@@ -20,7 +20,11 @@ See https://github.com/RLBot/RLBotPythonExample/wiki for documentation and tutor
 
 - Faster boost stealing
 - Speed flips
+- maintain supersonic as much as possible
 - Optimal kickoffs
 -- kickoff priority
 -- https://github.com/RLBot/RLBot/wiki/Useful-Game-Values
 - Wavedashs
+- demo, if your teammate is closer to the ball and you're supersonic, demo the closest 'enemy' car
+- demo avoidance, if a car is going to intersect, jump over it
+- recoveries
