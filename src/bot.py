@@ -15,6 +15,7 @@ class MyBot(BaseAgent):
         super().__init__(name, team, index)
         self.active_sequence: Sequence = None
         self.boost_pad_tracker = BoostPadTracker()
+        self.airborne = False
 
     def initialize_agent(self):
         # Set up information about the boost pads now that the game is active and the info is available
@@ -56,15 +57,33 @@ class MyBot(BaseAgent):
         self.renderer.draw_string_3d(car_location, 1, 1, f'Speed: {car_velocity.length():.1f}', self.renderer.white())
         self.renderer.draw_rect_3d(target_location, 8, 8, True, self.renderer.cyan(), centered=True)
 
+        controls = SimpleControllerState()
+
         if 750 < car_velocity.length() < 800:
             # We'll do a front flip if the car is moving at a certain speed.
             # Note: maybe do a diagonal / sideflip again? We should also only conditionally flip
-            #  since getting caught mid flip is bad
+            #  since getting caught mid flip is bad, this would also be cool as a wavedash
             return self.begin_front_flip(packet)
 
-        controls = SimpleControllerState()
+        if my_car.is_super_sonic == False:
+            controls.boost = True
 
-        self.boost_steal(controls, car_location, my_car)
+        if my_car.boost == 100:
+            controls.boost = True
+
+        if my_car.has_wheel_contact == True:
+            self.airborne = False
+        else:
+            # try to recover here
+            if self.airborne == False:
+                self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Custom_Useful_Faking)
+
+            self.airborne = True
+
+        if ball_location.x == 0 and ball_location.y == 0 and packet.game_ball.physics.velocity.x == 0 and packet.game_ball.physics.velocity.y == 0 and packet.game_ball.physics.velocity.z == 0:
+            self.do_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+        else:
+            self.boost_steal(controls, car_location, my_car, ball_location)
 
         return controls
 
@@ -74,7 +93,23 @@ class MyBot(BaseAgent):
         else:
             return False
 
-    def boost_steal(self, controls, car_location, my_car):
+    def do_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
+        self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
+        controls.steer = steer_toward_target(my_car, ball_location)
+        controls.throttle = 1.0
+        controls.boost = True
+
+        distance_from_ball = car_location.dist(ball_location)
+
+        # tweak these settings so the first and second flips go off at the right time
+        if 750 < car_velocity.length() < 900:
+            self.begin_front_flip(packet)
+
+        if distance_from_ball <= 1000:
+            self.begin_front_flip(packet)
+
+
+    def boost_steal(self, controls, car_location, my_car, ball_location):
         active_boosts = [boost for boost in self.boost_pad_tracker.get_full_boosts() if boost.is_active == True]
         car_x = int(car_location.x)
         car_y = int(car_location.y)
@@ -88,17 +123,15 @@ class MyBot(BaseAgent):
             distance_from_boost = abs(boost_x - car_x) + abs(boost_y - car_y)
             boost_distances.append(distance_from_boost)
 
-        boost_index = boost_distances.index(min(boost_distances))
-
-        boost_location = active_boosts[boost_index].location
-
-        controls.steer = steer_toward_target(my_car, boost_location)
-        controls.throttle = 1.0
-
-        if my_car.boost >= 80:
-            controls.boost = True
+        if len(active_boosts) == 0:
+            controls.steer = steer_toward_target(my_car, ball_location)
+            controls.throttle = 1.0
         else:
-            controls.boost = False
+            boost_index = boost_distances.index(min(boost_distances))
+            boost_location = active_boosts[boost_index].location
+
+            controls.steer = steer_toward_target(my_car, boost_location)
+            controls.throttle = 1.0
 
     def begin_front_flip(self, packet):
         # Send some quickchat just for fun
