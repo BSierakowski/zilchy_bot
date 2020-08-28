@@ -112,18 +112,6 @@ class MyBot(BaseAgent):
         else:
             self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
 
-        # # Do a front flip. We will be committed to this for a few seconds and the bot will ignore other
-        # # logic during that time because we are setting the active_sequence.
-        # self.active_sequence = Sequence([
-        #     ControlStep(duration=0.05, controls=SimpleControllerState(jump=True)),
-        #     ControlStep(duration=0.05, controls=SimpleControllerState(jump=False)),
-        #     ControlStep(duration=0.2, controls=SimpleControllerState(jump=True, pitch=-1)),
-        #     ControlStep(duration=0.8, controls=SimpleControllerState()),
-        # ])
-        #
-        # # Return the controls associated with the beginning of the sequence so we can start right away.
-        # return self.active_sequence.tick(packet)
-
     def front_flip_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
         controls.steer = steer_toward_target(my_car, ball_location)
