@@ -85,6 +85,9 @@ class MyBot(BaseAgent):
         else:
             self.boost_steal(controls, car_location, my_car, ball_location)
 
+        # self.half_flip_sequence(packet)
+        # self.ball_chase(controls, my_car, ball_location)
+
         return controls
 
     def get_kickoff_position(self, car_location):
@@ -111,6 +114,26 @@ class MyBot(BaseAgent):
             self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
         else:
             self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+
+    def ball_chase(self, controls, my_car, ball_location):
+        controls.steer = steer_toward_target(my_car, ball_location)
+        controls.throttle = 1.0
+
+    def half_flip_sequence(self, packet):
+        self.active_sequence = Sequence([
+            ControlStep(duration=0.3, controls=SimpleControllerState(throttle=-1)),
+            ControlStep(duration=0.1, controls=SimpleControllerState(throttle=-1, jump=True, pitch=1)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(throttle=-1, jump=False, pitch=1)),
+            ControlStep(duration=0.1, controls=SimpleControllerState(jump=True, pitch=1)),
+            ControlStep(duration=0.1, controls=SimpleControllerState(throttle=1, boost=True, pitch=-1)),
+            ControlStep(duration=0.5, controls=SimpleControllerState(throttle=1, boost=True, pitch=-1, roll=1)),
+            ControlStep(duration=0.2, controls=SimpleControllerState(roll=0)),
+            ControlStep(duration=0.5, controls=SimpleControllerState(throttle=1)),
+        ])
+
+        return self.active_sequence.tick(packet)
+
+
 
     def front_flip_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
