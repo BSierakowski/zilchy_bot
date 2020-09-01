@@ -91,13 +91,13 @@ class MyBot(BaseAgent):
         return controls
 
     def get_kickoff_position(self, car_location):
-        if car_location.flat().dist(Vec3(2048.00, -2560.00)) < 1 or car_location.flat().dist(Vec3(-2048.00, 2560.00)) < 1:
+        if car_location.flat().dist(Vec3(2048.00, -2560.00)) < 50 or car_location.flat().dist(Vec3(-2048.00, 2560.00)) < 50:
             return 1
-        elif car_location.flat().dist(Vec3(-2048.00, -2560.00)) < 1 or car_location.flat().dist(Vec3(2048.00, 2560.00)) < 1:
+        elif car_location.flat().dist(Vec3(-2048.00, -2560.00)) < 50 or car_location.flat().dist(Vec3(2048.00, 2560.00)) < 50:
             return 2
-        elif car_location.flat().dist(Vec3(256.00, -3840.00)) < 1 or car_location.flat().dist(Vec3(-256.00, 3840.00)) < 1:
+        elif car_location.flat().dist(Vec3(256.00, -3840.00)) < 50 or car_location.flat().dist(Vec3(-256.00, 3840.00)) < 50:
             return 3
-        elif car_location.flat().dist(Vec3(-256.00, -3840.00)) < 1 or car_location.flat().dist(Vec3(256.00, 3840.00)) < 1:
+        elif car_location.flat().dist(Vec3(-256.00, -3840.00)) < 50 or car_location.flat().dist(Vec3(256.00, 3840.00)) < 50:
             return 4
         else:
             return 5
