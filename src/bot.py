@@ -93,6 +93,7 @@ class MyBot(BaseAgent):
             self.do_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
 
 
+        # self.boost_steal(controls, car_location, my_car, ball_location)
         # self.half_flip_sequence(packet)
         # self.ball_chase(controls, my_car, ball_location)
 
