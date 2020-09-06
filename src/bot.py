@@ -43,33 +43,33 @@ class MyBot(BaseAgent):
         car_velocity = Vec3(my_car.physics.velocity)
         ball_location = Vec3(packet.game_ball.physics.location)
 
-        if car_location.dist(ball_location) > 1500:
-            # We're far away from the ball, let's try to lead it a little bit
-            ball_prediction = self.get_ball_prediction_struct()  # This can predict bounces, etc
-            ball_in_future = find_slice_at_time(ball_prediction, packet.game_info.seconds_elapsed + 2)
-            target_location = Vec3(ball_in_future.physics.location)
-            self.renderer.draw_line_3d(ball_location, target_location, self.renderer.cyan())
-        else:
-            target_location = ball_location
+        # if car_location.dist(ball_location) > 1500:
+        #     # We're far away from the ball, let's try to lead it a little bit
+        #     ball_prediction = self.get_ball_prediction_struct()  # This can predict bounces, etc
+        #     ball_in_future = find_slice_at_time(ball_prediction, packet.game_info.seconds_elapsed + 2)
+        #     target_location = Vec3(ball_in_future.physics.location)
+        #     self.renderer.draw_line_3d(ball_location, target_location, self.renderer.cyan())
+        # else:
+        #     target_location = ball_location
 
         # Draw some things to help understand what the bot is thinking
-        self.renderer.draw_line_3d(car_location, target_location, self.renderer.white())
-        self.renderer.draw_string_3d(car_location, 1, 1, f'Speed: {car_velocity.length():.1f}', self.renderer.white())
-        self.renderer.draw_rect_3d(target_location, 8, 8, True, self.renderer.cyan(), centered=True)
+        # self.renderer.draw_line_3d(car_location, target_location, self.renderer.white())
+        # self.renderer.draw_string_3d(car_location, 1, 1, f'Speed: {car_velocity.length():.1f}', self.renderer.white())
+        # self.renderer.draw_rect_3d(target_location, 8, 8, True, self.renderer.cyan(), centered=True)
 
         controls = SimpleControllerState()
 
-        if 750 < car_velocity.length() < 800:
-            # We'll do a front flip if the car is moving at a certain speed.
-            # Note: maybe do a diagonal / sideflip again? We should also only conditionally flip
-            #  since getting caught mid flip is bad, this would also be cool as a wavedash
-            return self.begin_front_flip(packet)
-
-        if my_car.is_super_sonic == False:
-            controls.boost = True
-
-        if my_car.boost == 100:
-            controls.boost = True
+        # if 750 < car_velocity.length() < 800:
+        #     # We'll do a front flip if the car is moving at a certain speed.
+        #     # Note: maybe do a diagonal / sideflip again? We should also only conditionally flip
+        #     #  since getting caught mid flip is bad, this would also be cool as a wavedash
+        #     return self.begin_front_flip(packet)
+        #
+        # if my_car.is_super_sonic == False:
+        #     controls.boost = True
+        #
+        # if my_car.boost == 100:
+        #     controls.boost = True
 
         if my_car.has_wheel_contact == True:
             self.airborne = False
