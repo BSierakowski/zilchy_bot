@@ -16,6 +16,8 @@ class MyBot(BaseAgent):
         self.active_sequence: Sequence = None
         self.boost_pad_tracker = BoostPadTracker()
         self.airborne = False
+        self.kickoff_active = True
+        self.kickoff_position = None
 
     def initialize_agent(self):
         # Set up information about the boost pads now that the game is active and the info is available
@@ -111,6 +113,9 @@ class MyBot(BaseAgent):
         else:
             return 5
 
+    def ball_in_kickoff_position(self, ball_location, packet):
+        if ball_location.x == 0 \
+            and ball_location.y == 0 \
             and packet.game_ball.physics.velocity.x == 0 \
             and packet.game_ball.physics.velocity.y == 0 \
             and packet.game_ball.physics.velocity.z == 0:
@@ -125,6 +130,21 @@ class MyBot(BaseAgent):
 
         if self.kickoff_position == 1:
             self.left_speed_flip_kickoff(packet)
+
+        if self.kickoff_position == 2:
+            self.right_speed_flip_kickoff(packet)
+
+        if self.kickoff_position == 3:
+            self.left_diagonal_flip_kickoff(packet, ball_location)
+            controls.steer = steer_toward_target(my_car, ball_location)
+            controls.throttle = 1.0
+
+        # if self.kickoff_position == 1 or self.kickoff_position == 2:
+        #     self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_IGotIt)
+        #     self.speed_flip_kickoff(packet)
+        # else:
+        #     self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
+        #     # self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
 
     def ball_chase(self, controls, my_car, ball_location):
         controls.steer = steer_toward_target(my_car, ball_location)
@@ -144,7 +164,54 @@ class MyBot(BaseAgent):
 
         return self.active_sequence.tick(packet)
 
+    def left_speed_flip_kickoff(self, packet):
+        print("left speed flip")
 
+        self.active_sequence = Sequence([
+            ControlStep(duration=.4, controls=SimpleControllerState(throttle=1, boost=1)),
+            ControlStep(duration=.1, controls=SimpleControllerState(throttle=1, boost=1, steer=.75)),
+            ControlStep(duration=.05, controls=SimpleControllerState(jump=True, yaw=1, boost=1)),
+            ControlStep(duration=.05, controls=SimpleControllerState(yaw=-1, pitch=-1, boost=1)),
+            ControlStep(duration=.05, controls=SimpleControllerState(jump=True, yaw=-1, pitch=-1)),
+            ControlStep(duration=.5, controls=SimpleControllerState(yaw=1, pitch=1, roll=-1)),
+            ControlStep(duration=.25, controls=SimpleControllerState(roll=-1, boost=1, yaw=1)),
+            ControlStep(duration=.5, controls=SimpleControllerState(throttle=1, boost=1, handbrake=True)),
+            ControlStep(duration=.5, controls=SimpleControllerState(throttle=1, boost=1)),
+            ControlStep(duration=3, controls=SimpleControllerState(throttle=1)),
+        ])
+
+        return self.active_sequence.tick(packet)
+
+    def right_speed_flip_kickoff(self, packet):
+        print("right speed flip")
+
+        self.active_sequence = Sequence([
+            ControlStep(duration=.4, controls=SimpleControllerState(throttle=1, boost=True)),
+            ControlStep(duration=.2, controls=SimpleControllerState(throttle=1, boost=True, steer=.75)),
+            ControlStep(duration=.05, controls=SimpleControllerState(jump=True, yaw=1, boost=True)),
+            ControlStep(duration=.05, controls=SimpleControllerState(yaw=-1, pitch=-1, boost=True)),
+            ControlStep(duration=.05, controls=SimpleControllerState(jump=True, yaw=-1, pitch=-1)),
+            ControlStep(duration=.5, controls=SimpleControllerState(yaw=1, pitch=1, roll=-1)),
+            ControlStep(duration=.25, controls=SimpleControllerState(roll=-1, boost=True, yaw=1)),
+            ControlStep(duration=.25, controls=SimpleControllerState(throttle=1, boost=True, handbrake=True)),
+            ControlStep(duration=3, controls=SimpleControllerState(throttle=1)),
+        ])
+
+        return self.active_sequence.tick(packet)
+
+    def left_diagonal_flip_kickoff(self, packet, ball_location):
+        print("left diagonal kickoff")
+
+        self.active_sequence = Sequence([
+            ControlStep(duration=.2, controls=SimpleControllerState(throttle=1, boost=True)),
+            ControlStep(duration=.3, controls=SimpleControllerState(throttle=1, boost=1, steer=1)),
+            ControlStep(duration=.15, controls=SimpleControllerState(throttle=1, boost=1, steer=-1)),
+            ControlStep(duration=.05, controls=SimpleControllerState(jump=True, yaw=-1, boost=True)),
+            ControlStep(duration=.05, controls=SimpleControllerState(yaw=-1, boost=True)),
+            ControlStep(duration=.05, controls=SimpleControllerState(jump=True, yaw=-1, boost=True)),
+        ])
+
+        return self.active_sequence.tick(packet)
 
     def front_flip_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
