@@ -80,10 +80,18 @@ class MyBot(BaseAgent):
 
             self.airborne = True
 
-        if ball_location.x == 0 and ball_location.y == 0 and packet.game_ball.physics.velocity.x == 0 and packet.game_ball.physics.velocity.y == 0 and packet.game_ball.physics.velocity.z == 0:
-            self.do_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+        if self.ball_in_kickoff_position(ball_location, packet):
+            self.kickoff_active = True
         else:
-            self.boost_steal(controls, car_location, my_car, ball_location)
+            self.kickoff_active = False
+            self.kickoff_position = None
+
+        if self.kickoff_active and self.kickoff_position is None:
+            self.kickoff_position = self.get_kickoff_position(car_location)
+
+        if self.kickoff_active and self.kickoff_position is not None:
+            self.do_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+
 
         # self.half_flip_sequence(packet)
         # self.ball_chase(controls, my_car, ball_location)
@@ -102,18 +110,20 @@ class MyBot(BaseAgent):
         else:
             return 5
 
+            and packet.game_ball.physics.velocity.x == 0 \
+            and packet.game_ball.physics.velocity.y == 0 \
+            and packet.game_ball.physics.velocity.z == 0:
+                return True
+        else:
+            return False
+
     def do_kickoff(self, my_car, car_location, car_velocity, ball_location, controls, packet):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_Incoming)
-        controls.steer = steer_toward_target(my_car, ball_location)
-        controls.throttle = 1.0
-        controls.boost = True
 
-        kickoff_position = self.get_kickoff_position(car_location)
+        print(f"kickoff position {self.kickoff_position}")
 
-        if kickoff_position == 1 or kickoff_position == 2:
-            self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
-        else:
-            self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+        if self.kickoff_position == 1:
+            self.left_speed_flip_kickoff(packet)
 
     def ball_chase(self, controls, my_car, ball_location):
         controls.steer = steer_toward_target(my_car, ball_location)
