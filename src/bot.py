@@ -45,34 +45,14 @@ class MyBot(BaseAgent):
         car_velocity = Vec3(my_car.physics.velocity)
         ball_location = Vec3(packet.game_ball.physics.location)
 
-        # if car_location.dist(ball_location) > 1500:
-        #     # We're far away from the ball, let's try to lead it a little bit
-        #     ball_prediction = self.get_ball_prediction_struct()  # This can predict bounces, etc
-        #     ball_in_future = find_slice_at_time(ball_prediction, packet.game_info.seconds_elapsed + 2)
-        #     target_location = Vec3(ball_in_future.physics.location)
-        #     self.renderer.draw_line_3d(ball_location, target_location, self.renderer.cyan())
-        # else:
-        #     target_location = ball_location
+        controls = SimpleControllerState()
 
         # Draw some things to help understand what the bot is thinking
         # self.renderer.draw_line_3d(car_location, target_location, self.renderer.white())
         # self.renderer.draw_string_3d(car_location, 1, 1, f'Speed: {car_velocity.length():.1f}', self.renderer.white())
         # self.renderer.draw_rect_3d(target_location, 8, 8, True, self.renderer.cyan(), centered=True)
 
-        controls = SimpleControllerState()
-
-        # if 750 < car_velocity.length() < 800:
-        #     # We'll do a front flip if the car is moving at a certain speed.
-        #     # Note: maybe do a diagonal / sideflip again? We should also only conditionally flip
-        #     #  since getting caught mid flip is bad, this would also be cool as a wavedash
-        #     return self.begin_front_flip(packet)
-        #
-        # if my_car.is_super_sonic == False:
-        #     controls.boost = True
-        #
-        # if my_car.boost == 100:
-        #     controls.boost = True
-
+        # Important flags to check / set
         if my_car.has_wheel_contact == True:
             self.airborne = False
         else:
@@ -91,13 +71,18 @@ class MyBot(BaseAgent):
         if self.kickoff_active and self.kickoff_position is None:
             self.kickoff_position = self.get_kickoff_position(car_location)
 
+
+        # Main state checking area
         if self.kickoff_active and self.kickoff_position is not None:
             self.do_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+        else:
+            self.ball_chase(controls, my_car, car_location, ball_location, packet)
 
 
+        # Other things that have been written:
         # self.boost_steal(controls, car_location, my_car, ball_location)
         # self.half_flip_sequence(packet)
-        # self.ball_chase(controls, my_car, ball_location)
+        # self.manage_speed(packet, controls, my_car, car_velocity)
 
         return controls
 
@@ -128,25 +113,26 @@ class MyBot(BaseAgent):
 
         print(f"kickoff position {self.kickoff_position}")
 
-        if self.kickoff_position == 1:
-            self.left_speed_flip_kickoff(packet)
-
-        if self.kickoff_position == 2:
-            self.right_speed_flip_kickoff(packet)
-
-        if self.kickoff_position == 3:
-            self.left_diagonal_flip_kickoff(packet, ball_location)
-            controls.steer = steer_toward_target(my_car, ball_location)
-            controls.throttle = 1.0
-
-        # if self.kickoff_position == 1 or self.kickoff_position == 2:
-        #     self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Information_IGotIt)
-        #     self.speed_flip_kickoff(packet)
+        # if self.kickoff_position == 1:
+        #     self.left_speed_flip_kickoff(packet)
+        # elif self.kickoff_position == 2:
+        #     self.right_speed_flip_kickoff(packet)
+        # elif self.kickoff_position == 3:
+        #     self.left_diagonal_flip_kickoff(packet, ball_location)
         # else:
-        #     self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
-        #     # self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
+        self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
+        self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
 
-    def ball_chase(self, controls, my_car, ball_location):
+    def ball_chase(self, controls, my_car, car_location, ball_location, packet):
+        if car_location.dist(ball_location) > 1500:
+            # We're far away from the ball, let's try to lead it a little bit
+            ball_prediction = self.get_ball_prediction_struct()  # This can predict bounces, etc
+            ball_in_future = find_slice_at_time(ball_prediction, packet.game_info.seconds_elapsed + 2)
+            target_location = Vec3(ball_in_future.physics.location)
+            self.renderer.draw_line_3d(ball_location, target_location, self.renderer.cyan())
+        else:
+            target_location = ball_location
+
         controls.steer = steer_toward_target(my_car, ball_location)
         controls.throttle = 1.0
 
@@ -267,3 +253,16 @@ class MyBot(BaseAgent):
 
         # Return the controls associated with the beginning of the sequence so we can start right away.
         return self.active_sequence.tick(packet)
+
+    def manage_speed(self, packet, controls, my_car, car_velocity):
+        if 750 < car_velocity.length() < 800:
+            # We'll do a front flip if the car is moving at a certain speed.
+            # Note: maybe do a diagonal / sideflip again? We should also only conditionally flip
+            #  since getting caught mid flip is bad, this would also be cool as a wavedash
+            return self.begin_front_flip(packet)
+
+        if my_car.is_super_sonic == False:
+            controls.boost = True
+
+        if my_car.boost == 100:
+            controls.boost = True
