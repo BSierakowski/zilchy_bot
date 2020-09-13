@@ -45,6 +45,21 @@ class MyBot(BaseAgent):
         car_velocity = Vec3(my_car.physics.velocity)
         ball_location = Vec3(packet.game_ball.physics.location)
 
+        if my_car.team == 1: # Orange Team
+            self.my_goal_right_post = Vec3(850, 5100, 320)
+            self.my_goal_center = Vec3(0, 5100, 320)
+            self.my_goal_left_post = Vec3(-850, 5100, 320)
+            self.enemy_goal_right_post = Vec3(850, -5100, 320)
+            self.enemy_goal_center = Vec3(0.0, -5100, 320)
+            self.enemy_goal_left_post = Vec3(-850, -5100, 320)
+        else: # Blue Team
+            self.my_goal_right_post = Vec3(-850, -5100, 320)
+            self.my_goal_center = Vec3(0.0, -5100, 320)
+            self.my_goal_left_post = Vec3(850, -5100, 320)
+            self.enemy_goal_right_post = Vec3(-850, 5100, 320)
+            self.enemy_goal_center = Vec3(0, 5100, 320)
+            self.enemy_goal_left_post = Vec3(850, 5100, 320)
+
         controls = SimpleControllerState()
 
         # Draw some things to help understand what the bot is thinking
