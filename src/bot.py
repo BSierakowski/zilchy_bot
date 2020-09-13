@@ -91,7 +91,7 @@ class MyBot(BaseAgent):
         if self.kickoff_active and self.kickoff_position is not None:
             self.do_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
         else:
-            self.ball_chase(controls, my_car, car_location, ball_location, packet)
+            self.ball_chase(controls, my_car, car_location, car_velocity, ball_location, packet)
 
 
         # Other things that have been written:
@@ -138,7 +138,7 @@ class MyBot(BaseAgent):
         self.send_quick_chat(team_only=False, quick_chat=QuickChatSelection.Reactions_HolyCow)
         self.front_flip_kickoff(my_car, car_location, car_velocity, ball_location, controls, packet)
 
-    def ball_chase(self, controls, my_car, car_location, ball_location, packet):
+    def ball_chase(self, controls, my_car, car_location, car_velocity, ball_location, packet):
         if car_location.dist(ball_location) > 1500:
             # We're far away from the ball, let's try to lead it a little bit
             ball_prediction = self.get_ball_prediction_struct()  # This can predict bounces, etc
@@ -150,6 +150,7 @@ class MyBot(BaseAgent):
 
         controls.steer = steer_toward_target(my_car, ball_location)
         controls.throttle = 1.0
+        self.manage_speed(packet, controls, my_car, car_velocity)
 
     def half_flip_sequence(self, packet):
         self.active_sequence = Sequence([
